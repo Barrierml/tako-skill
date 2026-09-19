@@ -1,11 +1,13 @@
 ---
-name: agent-skills
-description: Tako skill for billed web search and OpenAI-compatible image generate/edit. Use when the user asks to search the web or generate/edit images through Tako.
+name: tako-skill
+description: Tako skill for billed web search, images, and System One decisions (POST /v1/systemone). Use when the user asks to search, generate/edit images, or make structured Choice/Score/Noul judgments through Tako.
 ---
 
-# Agent Skills
+# Tako Skill
 
-Call Tako for web search and images. One public host, one user token.
+Call Tako for web search, images, and System One structured decisions. One public host, one user token.
+
+This repository was renamed from `Barrierml/agent-skills`. Old URLs 301 here. If `bunx skills add Barrierml/agent-skills` still points at the old name, use `Barrierml/tako-skill`.
 
 Do not invent other hosts, paths, or auth schemes. Do not write the API key into this skill, a repo, a screenshot, or a chat log.
 
@@ -29,7 +31,19 @@ Helpers in this skill's `scripts/` directory:
 ```bash
 ./scripts/tako-search.sh "capital of Japan"
 ./scripts/tako-image.sh generate "a tiny red apple on a white table"
+./scripts/tako-systemone.sh "hello" "Is this a greeting?"
 ```
+
+## When to use which path
+
+| User intent | Path |
+|---|---|
+| Search the web, cite sources | `POST /v1/search` |
+| Generate or edit a picture | `POST /v1/images/generations` or `/v1/images/edits` |
+| Classify, route, score, judge urgency | `POST /v1/systemone` with `jev-latest` |
+| Write prose, code, or chat | Use a chat model. Do not use Jev to generate text |
+
+`jev-*` is hidden from the plaza and from public `GET /v1/models`. Discover it from this skill, not from a model picker.
 
 ## Verified today
 
@@ -38,6 +52,7 @@ Helpers in this skill's `scripts/` directory:
 | Web search | `POST /v1/search` | HTTP 200. Default/kab returns sources; `provider=groq` may return only `answer` |
 | Image generate | `POST /v1/images/generations` | HTTP 200, `gpt-image-2`, `b64_json` |
 | Image edit | `POST /v1/images/edits` | HTTP 200, multipart `image` + `prompt` |
+| Structured decision | `POST /v1/systemone` | Contract is TypeSafe System One. Default `jev-latest`. Not chat |
 
 Not in this skill until a live request succeeds:
 
@@ -106,12 +121,47 @@ curl -sS "$TAKO_BASE_URL/v1/images/edits" \
 
 Default model: `gpt-image-2`. If Tako returns `data[].url`, show that URL. If only `b64_json` exists, decode to a file.
 
+## 3. System One decisions
+
+`POST $TAKO_BASE_URL/v1/systemone`
+
+Read this section before calling Jev.
+
+- Judging, routing, scoring, urgency → `/v1/systemone`
+- Writing articles, writing code, chatting → keep using a chat model
+- Default `model`: `jev-latest`
+- Do not wrap this as `/v1/chat/completions`
+- Do not print the API key
+- English state text works best
+- Success `model` may be a versioned id such as `jev-1.13.0`. Read `answers`
+
+Minimal Noul:
+
+```bash
+curl -sS "$TAKO_BASE_URL/v1/systemone" \
+  -H "Authorization: Bearer $TAKO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"state":"hello","model":"jev-latest","questions":{"greeting":{"type":"noul","instructions":"Is this a greeting?"}}}'
+```
+
+Helper:
+
+```bash
+./scripts/tako-systemone.sh "hello" "Is this a greeting?"
+```
+
+`questions` values are `choice`, `score`, or `noul`. `state` may be a string or a JSON object.
+
+Compatible prefix: `$TAKO_BASE_URL/api/v1/systemone`.
+
+Official TypeSafe SDKs: set `baseURL` / `TYPESAFE_BASE_URL` to `$TAKO_BASE_URL` (no `/v1`) and use the Tako token. `systemOne()` works. Tako `GET /v1/models` does not list `jev-*`, so SDK `models.list()` is not guaranteed.
+
 ## Claude Code
 
 Install once, then put the key in the environment of the Claude Code process:
 
 ```bash
-bunx skills add Barrierml/agent-skills -g -y
+bunx skills add Barrierml/tako-skill -g -y
 export TAKO_API_KEY="cr_your_key"
 export TAKO_BASE_URL="https://tako.shiroha.tech"
 ```
@@ -119,17 +169,18 @@ export TAKO_BASE_URL="https://tako.shiroha.tech"
 Or clone into the project Claude reads:
 
 ```bash
-git clone https://github.com/Barrierml/agent-skills.git \
-  .claude/skills/agent-skills
+git clone https://github.com/Barrierml/tako-skill.git \
+  .claude/skills/tako-skill
 ```
 
 Prompt the model with a concrete task, not a generic “use tools”:
 
 ```text
-Use the agent-skills skill.
+Use the tako-skill skill.
 Search Tako for "capital of Japan" and cite the source URLs.
 Then generate a simple photo of a tiny red apple on a white table with gpt-image-2.
-Do not call /v1/audio/* or /v1/videos. Do not print TAKO_API_KEY.
+If I ask to classify or score, POST /v1/systemone with model jev-latest.
+Do not wrap systemone as chat. Do not call /v1/videos. Do not print TAKO_API_KEY.
 ```
 
 Claude Code should read `SKILL.md` and run the curl/helpers itself.
@@ -144,13 +195,14 @@ export TAKO_BASE_URL="https://tako.shiroha.tech"
 ```
 
 ```text
-Follow https://github.com/Barrierml/agent-skills/blob/main/SKILL.md
+Follow https://github.com/Barrierml/tako-skill/blob/main/SKILL.md
 or the local clone of that repo.
 
 Search POST $TAKO_BASE_URL/v1/search with query "capital of Japan".
 If you need an image, POST /v1/images/generations with model gpt-image-2.
+If you need a structured Choice/Score/Noul judgment, POST /v1/systemone with model jev-latest.
 
-Do not call speech or video endpoints.
+Do not call video endpoints.
 Keep the API key in the Authorization header only.
 ```
 
@@ -160,14 +212,16 @@ If you already use `tako` to launch Codex, still export `TAKO_API_KEY` in that s
 
 1. Confirm `$TAKO_API_KEY`. If missing, stop and ask.
 2. Search for facts. Image only when the user asked for a picture.
-3. Prefer helper scripts when they exist; otherwise curl the paths above.
-4. `401/403`: token invalid or no access. `402`: billing. `429`: wait and retry once.
-5. Never print the full API key.
+3. Classify / score / route with `/v1/systemone`. Do not use Jev to write text.
+4. Prefer helper scripts when they exist; otherwise curl the paths above.
+5. `401/403`: token invalid or no access. `402`: billing. `422`: malformed questions. `429`: wait and retry once.
+6. Never print the full API key.
 
 ## Do not
 
 - Do not send keys to any host other than `$TAKO_BASE_URL`.
-- Do not use chat-completions as a substitute for `/v1/search`.
+- Do not use chat-completions as a substitute for `/v1/search` or `/v1/systemone`.
 - Do not poll image task URLs on Tako.
 - Do not hardcode channel IDs.
-- Do not document or call speech/video from this skill until those paths return 200 on a real token.
+- Do not treat `jev-*` as a chat model.
+- Do not document or call video from this skill until that path returns 200 on a real token.
