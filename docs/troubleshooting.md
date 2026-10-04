@@ -54,3 +54,8 @@ helper 只发一个 Noul 问题；Choice、Score 和多个问题请使用[完整
 ## 语音、视频、蒙版或异步任务在哪里
 
 当前 Skill 没有语音、视频、图片异步任务/轮询或 variations 工作流。蒙版、透明背景、所有尺寸/质量组合也没有在各模型上全面验证。不要把上游或旧版 PAR 的能力直接当作 Tako 已支持；图片边界见[模型与接口指南](../references/images.md#参数费用与限制)。
+
+
+## 用量查询
+
+先运行 `./scripts/tako-usage.sh token` 查看当前 Key 的 `total_available` 和 `total_used`；需要订阅窗口和账户聚合消费时再运行 `./scripts/tako-usage.sh billing`。这两个查询只读，不会恢复已扣额度，也不能把两套结果相加。字段说明见 [用量与额度](../references/usage.md)。
