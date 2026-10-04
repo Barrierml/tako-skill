@@ -92,4 +92,6 @@ cd tako-skill
 
 本仓库旧名 `Barrierml/agent-skills` 已重定向到此处；新安装使用 `Barrierml/tako-skill`。更新命令见快速开始。
 
+国内访问镜像的部署文件在 [`deploy/cn-mirror`](deploy/cn-mirror/README.md)，镜像上线后可从服务器域名获取文档和完整压缩包。
+
 [MIT License](LICENSE)
