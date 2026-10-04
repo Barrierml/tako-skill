@@ -2,6 +2,8 @@
 
 用同一把 Tako 用户 API Key，可以生成新图片，也可以上传参考图要求修改。第一次使用建议选择 `gpt-image-2`，先生成一张图片，再试改图。图片请求会消耗账户或订阅额度。
 
+也可以直接打开 [Tako 游乐场](https://tako.shiroha.tech/playground)，切换到图片页，点击样例填入模型和完整提示词。改图样例会自动载入原图，生图样例会清除先前的参考图；可以继续修改提示词，点击“生成”才发起计费请求。模型不可用时，请选择有相应模型权限的分组。
+
 ## 准备 API Key
 
 登录 [Tako 控制台](https://tako.shiroha.tech)，在密钥管理中创建用户 API Key。复制完整值，不要自行更换前缀。Key 的分组、模型权限和额度必须允许调用你选择的模型。
@@ -28,7 +30,7 @@ export TAKO_BASE_URL="https://tako.shiroha.tech"
 | `gemini-3-pro-image` | 同上 | 同上 | 同上 |
 | `grok-imagine-image-quality` | `/v1/images/generations` | `/v1/images/edits`，JSON `images[].image_url` | 请求 `response_format=b64_json` |
 
-`tako-20261002-1433` 版本的 Gemini Images 兼容改图存在参考图和返回结构问题。本指南推荐使用下文的原生接口或已更新的 helper，避免依赖旧版兼容行为。原生生成/改图已验证。Grok 文生图和 JSON 改图都已验证返回可解码图片。当前上游 multipart 改图会忽略 `response_format`，需要 base64 返回时请使用 JSON 或 helper。Grok 的默认 URL 返回依赖 `imgen.x.ai` 下载链路，本次本机下载超时、服务端下载被拒；优先直接请求 base64 图片。
+`tako-20261002-1433` 版本的 Gemini Images 兼容改图存在参考图和返回结构问题。从 `tako-20261004-1212` 起已修复；两个 Gemini 模型的 JSON 与 multipart 兼容改图均已实测返回标准 `data[].b64_json`。下文原生接口和 helper 也可使用，原生生成/改图已验证。Grok 文生图和 JSON 改图都已验证返回可解码图片。当前上游 multipart 改图会忽略 `response_format`，需要 base64 返回时请使用 JSON 或 helper。Grok 的默认 URL 返回依赖 `imgen.x.ai` 下载链路，本次本机下载超时、服务端下载被拒；优先直接请求 base64 图片。
 
 ## 最快方式：使用 Tako Skill helper
 

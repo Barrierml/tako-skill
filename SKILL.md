@@ -98,7 +98,7 @@ Rules:
 
 ## 2. Images
 
-Read [references/images.md](references/images.md) for model selection, user examples, response decoding and limitations. It includes actual product photography, 3D illustration, forest photography and a mug-color edit comparison, each with the full prompt and command. Preserve explicit edit invariants when adapting these examples. The live image checks below are dated **2026-10-04**; visibility still depends on the user's token.
+Read [references/images.md](references/images.md) for model selection, user examples, response decoding and limitations. It includes actual product photography, 3D illustration, forest photography and a mug-color edit comparison, each with the full prompt and command. Preserve explicit edit invariants when adapting these examples. Users can also try these presets on the [Tako Playground](https://tako.shiroha.tech/playground) image tab: choosing a preset fills inputs without generating; the edit preset loads its reference and generation presets clear any old reference. An explicit Generate action is still required. The live image checks below are dated **2026-10-04**; visibility still depends on the user's token.
 
 - Default: `gpt-image-2`. GPT `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` also passed generation and multipart editing.
 - Gemini `gemini-3.1-flash-image` / `gemini-3-pro-image`: use native `/v1beta/models/{model}:generateContent` with `inlineData` for editing. The Tako build verified on 2026-10-04 (`tako-20261002-1433`) drops references and returns the wrong response shape on the Images compatibility edit path. Prefer native Gemini for portable edits; only use compatibility edits after verifying the target server fix.
