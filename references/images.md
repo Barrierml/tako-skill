@@ -252,6 +252,48 @@ PY
 
 生成新图时，删除 `inlineData` 那个 part，并换成生成图片的提示词。另一个 Gemini 模型替换 `model` 为 `gemini-3-pro-image`。原生接口可通过 `generationConfig.imageConfig.aspectRatio` 指定画幅，例如 `16:9`。
 
+## 直接调用：多张参考图
+
+目前 API 可以在同一次改图请求中使用多张参考图。2026-10-04 在 `tako-20261004-1254` 上，用两张独立图片实测 `gpt-image-2`、`gemini-3.1-flash-image`、`grok-imagine-image-quality` 的 JSON `images[].image_url` 路径均成功：第一张是橙色星星，第二张是蓝色月牙；提示词没有透露形状或颜色，三个结果都保留了两图对象。
+
+![上排两张参考图，下排 GPT Image 2、Gemini Flash Image、Grok Image Quality 的实际双图结果](../assets/images/multi-reference-comparison.webp)
+
+预览图经过压缩。两个测试输入另存为 [参考图一](../assets/images/multi-reference-1.webp) 和 [参考图二](../assets/images/multi-reference-2.webp)，供复制下面的请求试用。同样提示词再次生成，结果可能不同。
+
+数量与入口要分清：
+
+- Grok 当前上游链路限制最多 **3 张参考图**；本次实际成功验证的是 2 张。
+- GPT Image 2、Gemini Flash Image 本次确认 **2 张可用**，没有验证最高张数。另两个 GPT 模型和 Gemini Pro 的多图效果未在本轮逐个测试，不从同族实现推断成已实测。
+- 游乐场和 `tako-image.sh edit` 目前各只接收 **1 张参考图**；多个本地文件请用下面的直接 API 请求，不能把第二个文件塞进 helper 的提示词位置。
+- `n=1` 指生成一张结果，和输入参考图数量无关。
+
+在已克隆的 `tako-skill` 仓库根目录运行；Python 先读取两张 WebP 编码到 JSON，curl 再提交。默认使用 GPT Image 2，也可以把 `model` 改为上面两个已验证模型：
+
+```bash
+python3 - <<'PY'
+import base64, json
+from pathlib import Path
+sources = [Path("assets/images/multi-reference-1.webp"),
+           Path("assets/images/multi-reference-2.webp")]
+payload = {
+    "model": "gpt-image-2",
+    "prompt": "Combine the TWO reference images into one flat illustration on a white background. Put the object from the FIRST reference on the LEFT and the object from the SECOND reference on the RIGHT. Preserve the distinct shape and color of each reference object. Exactly two objects, equal visual scale, no extra objects, no text.",
+    "n": 1,
+    "response_format": "b64_json",
+    "images": [{"image_url": "data:image/webp;base64," +
+                base64.b64encode(source.read_bytes()).decode()}
+               for source in sources]
+}
+Path("multi-edit-request.json").write_text(json.dumps(payload), encoding="utf-8")
+PY
+curl --fail-with-body -sS --max-time 240 "$TAKO_BASE_URL/v1/images/edits" \
+  -H "Authorization: Bearer $TAKO_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data-binary @multi-edit-request.json --output multi-edited-response.json
+```
+
+从 `multi-edited-response.json` 的 `data[].b64_json` 解码保存，方法同“直接调用：生成图片”（将其中的 `response.json` 替换为这个文件名）。更换自己的图片时，PNG/JPEG/WebP 对应的 data URL MIME 必须与实际文件一致；把图片用途和必须保留的特征写入提示词，并检查结果。
+
 ## 参数、费用与限制
 
 - 默认从 `model`、`prompt`、`n=1` 开始。尺寸、质量、透明背景、蒙版、多参考图等参数的支持因模型和渠道而异，本指南没有承诺它们都可用。

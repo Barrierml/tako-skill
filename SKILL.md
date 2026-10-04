@@ -15,7 +15,7 @@ Do not invent other hosts, paths, or auth schemes. Do not write the API key into
 
 ```bash
 export TAKO_BASE_URL="${TAKO_BASE_URL:-https://tako.shiroha.tech}"
-export TAKO_API_KEY="cr_..."   # user token from the Tako console
+export TAKO_API_KEY="YOUR_COMPLETE_TAKO_USER_KEY"   # copy the full console value; preserve its prefix
 ```
 
 Auth on every call:
@@ -45,7 +45,9 @@ Helpers in this skill's `scripts/` directory:
 
 `jev-*` is hidden from the plaza and from public `GET /v1/models`. Discover it from this skill, not from a model picker.
 
-## Verified today
+## Recorded checks
+
+Image checks were refreshed on 2026-10-04. Search and System One notes describe the existing contract and earlier checks; they were not re-tested in this image review.
 
 | Capability | Path | Production check |
 |---|---|---|
@@ -101,9 +103,10 @@ Rules:
 Read [references/images.md](references/images.md) for model selection, user examples, response decoding and limitations. It includes actual product photography, 3D illustration, forest photography and a mug-color edit comparison, each with the full prompt and command. Preserve explicit edit invariants when adapting these examples. Users can also try these presets on the [Tako Playground](https://tako.shiroha.tech/playground) image tab: choosing a preset fills inputs without generating; the edit preset loads its reference and generation presets clear any old reference. An explicit Generate action is still required. The live image checks below are dated **2026-10-04**; visibility still depends on the user's token.
 
 - Default: `gpt-image-2`. GPT `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` also passed generation and multipart editing.
-- Gemini `gemini-3.1-flash-image` / `gemini-3-pro-image`: use native `/v1beta/models/{model}:generateContent` with `inlineData` for editing. The Tako build verified on 2026-10-04 (`tako-20261002-1433`) drops references and returns the wrong response shape on the Images compatibility edit path. Prefer native Gemini for portable edits; only use compatibility edits after verifying the target server fix.
+- Gemini `gemini-3.1-flash-image` / `gemini-3-pro-image`: the helper uses native `/v1beta/models/{model}:generateContent` with `inlineData`. Tako fixed the Images compatibility edit path in `tako-20261004-1212`; both models passed JSON and multipart reference editing with standard `data[].b64_json` responses. The reference-loss/wrong-response defect applies to the older `tako-20261002-1433` build.
 - Grok `grok-imagine-image-quality`: request `response_format=b64_json`. Its default CDN URL download failed in the verification environment; do not claim a downloadable artifact based only on HTTP 200.
 - `./scripts/tako-image.sh` selects the native Gemini path automatically, requests base64 on GPT/Grok (JSON edits for Grok; current upstream multipart conversion drops response_format), and reports HTTP failures with a nonzero exit. It does not automatically retry paid requests.
+- Multiple references: use the [multi-reference recipe](references/images.md#直接调用多张参考图) with `/v1/images/edits` JSON `images[].image_url`. Two distinct references were jointly used successfully by `gpt-image-2`, `gemini-3.1-flash-image` and `grok-imagine-image-quality`. Grok's current upstream limits edit sources to three; GPT/Gemini maximum counts and the other models were not tested here. The helper and Playground each accept one reference; do not silently drop additional user images or pass multiple filenames to the single-image helper.
 
 ```bash
 ./scripts/tako-image.sh generate "a tiny red apple on a white table" \
@@ -149,6 +152,8 @@ Helper:
 
 Compatible prefix: `$TAKO_BASE_URL/api/v1/systemone`.
 
+For Choice/Score/Noul request examples, read the System One section of the [Tako integration guide](https://tako.shiroha.tech/docs/integrations/tako-skill). The shell helper sends one Noul question; use direct JSON for Choice/Score or multiple questions.
+
 Official TypeSafe SDKs: set `baseURL` / `TYPESAFE_BASE_URL` to `$TAKO_BASE_URL` (no `/v1`) and use the Tako token. `systemOne()` works. Tako `GET /v1/models` does not list `jev-*`, so SDK `models.list()` is not guaranteed.
 
 ## Claude Code
@@ -157,7 +162,7 @@ Install once, then put the key in the environment of the Claude Code process:
 
 ```bash
 bunx skills add Barrierml/tako-skill -g -y
-export TAKO_API_KEY="cr_your_key"
+export TAKO_API_KEY="YOUR_COMPLETE_TAKO_USER_KEY"
 export TAKO_BASE_URL="https://tako.shiroha.tech"
 ```
 
@@ -185,7 +190,7 @@ Claude Code should read `SKILL.md` and run the curl/helpers itself.
 Codex does not auto-load Claude skill folders. Give it the contract plus a prompt:
 
 ```bash
-export TAKO_API_KEY="cr_your_key"
+export TAKO_API_KEY="YOUR_COMPLETE_TAKO_USER_KEY"
 export TAKO_BASE_URL="https://tako.shiroha.tech"
 ```
 
@@ -209,7 +214,7 @@ If you already use `tako` to launch Codex, still export `TAKO_API_KEY` in that s
 2. Search for facts. Image only when the user asked for a picture.
 3. Classify / score / route with `/v1/systemone`. Do not use Jev to write text.
 4. Prefer helper scripts when they exist; otherwise curl the paths above.
-5. `401/403`: token invalid or no access. `402`: billing. `422`: malformed questions. `429`: wait and retry once.
+5. `401/403`: token invalid or no access. `402`: billing. `422`: malformed questions. Inspect the response as well as the process exit code: search/System One curl helpers can exit zero on HTTP errors. For image errors/timeouts/429, inspect usage and any saved response before deciding whether to repeat a paid request; do not retry automatically. For other calls, follow the rate-limit response.
 6. Never print the full API key.
 
 ## Do not

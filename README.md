@@ -2,7 +2,7 @@
 
 Public Tako skill for web search, images, and System One structured decisions.
 
-This repository is only the skill definition and curl helpers. It does **not** include API keys, channel IDs, or production credentials.
+This repository contains the skill definition, guides, examples and helpers. Image saving uses Python 3's standard library; search and System One helpers use curl. It does **not** include API keys, channel IDs, or production credentials.
 
 This repository was renamed from `Barrierml/agent-skills`. GitHub keeps a 301 from the old URL. If `bunx skills add Barrierml/agent-skills` still points at the old name, use:
 
@@ -27,6 +27,8 @@ Auth: `Authorization: Bearer $TAKO_API_KEY`
 
 ## Install
 
+Helpers require Bash, Python 3 and curl; cloning also requires Git. Copy the complete user Key from the Tako console without changing its prefix.
+
 ```bash
 bunx skills add Barrierml/tako-skill -g -y
 ```
@@ -41,7 +43,7 @@ git clone https://github.com/Barrierml/tako-skill.git \
 Then set a user token:
 
 ```bash
-export TAKO_API_KEY="cr_..."
+export TAKO_API_KEY="YOUR_COMPLETE_TAKO_USER_KEY"
 export TAKO_BASE_URL="https://tako.shiroha.tech"
 ```
 
@@ -76,6 +78,8 @@ Do not call video endpoints. Keep the API key in the Authorization header only.
 See [`SKILL.md`](./SKILL.md) for the contract agents should follow.
 
 For complete image examples, model routing and saving results, read [图片生成与改图](./references/images.md). The image helper supports GPT/Grok Images API and native Gemini image generation/editing.
+
+For two or more reference images, use the guide's [direct multi-reference API example](./references/images.md#直接调用多张参考图). Two references passed live checks on GPT Image 2, Gemini Flash Image and Grok Image Quality; the helper and Playground still accept one reference. Grok's current upstream allows at most three; GPT/Gemini maxima were not verified.
 
 ## Security
 
