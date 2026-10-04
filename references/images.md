@@ -28,7 +28,7 @@ export TAKO_BASE_URL="https://tako.shiroha.tech"
 | `gemini-3-pro-image` | 同上 | 同上 | 同上 |
 | `grok-imagine-image-quality` | `/v1/images/generations` | `/v1/images/edits`，JSON `images[].image_url` | 请求 `response_format=b64_json` |
 
-Gemini 的 Images 兼容改图在当前线上版本存在参考图和返回结构问题，改图请使用下文的原生接口或已更新的 helper。原生生成/改图已验证。Grok 文生图和 JSON 改图都已验证返回可解码图片。当前上游 multipart 改图会忽略 `response_format`，需要 base64 返回时请使用 JSON 或 helper。Grok 的默认 URL 返回依赖 `imgen.x.ai` 下载链路，本次本机下载超时、服务端下载被拒；优先直接请求 base64 图片。
+`tako-20261002-1433` 版本的 Gemini Images 兼容改图存在参考图和返回结构问题。本指南推荐使用下文的原生接口或已更新的 helper，避免依赖旧版兼容行为。原生生成/改图已验证。Grok 文生图和 JSON 改图都已验证返回可解码图片。当前上游 multipart 改图会忽略 `response_format`，需要 base64 返回时请使用 JSON 或 helper。Grok 的默认 URL 返回依赖 `imgen.x.ai` 下载链路，本次本机下载超时、服务端下载被拒；优先直接请求 base64 图片。
 
 ## 最快方式：使用 Tako Skill helper
 

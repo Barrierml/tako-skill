@@ -101,7 +101,7 @@ Rules:
 Read [references/images.md](references/images.md) for model selection, user examples, response decoding and limitations. The live image checks below are dated **2026-10-04**; visibility still depends on the user's token.
 
 - Default: `gpt-image-2`. GPT `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` also passed generation and multipart editing.
-- Gemini `gemini-3.1-flash-image` / `gemini-3-pro-image`: use native `/v1beta/models/{model}:generateContent` with `inlineData` for editing. The deployed Images compatibility edit path drops references and returns the wrong response shape; do not use that path until the fix is deployed and verified.
+- Gemini `gemini-3.1-flash-image` / `gemini-3-pro-image`: use native `/v1beta/models/{model}:generateContent` with `inlineData` for editing. The Tako build verified on 2026-10-04 (`tako-20261002-1433`) drops references and returns the wrong response shape on the Images compatibility edit path. Prefer native Gemini for portable edits; only use compatibility edits after verifying the target server fix.
 - Grok `grok-imagine-image-quality`: request `response_format=b64_json`. Its default CDN URL download failed in the verification environment; do not claim a downloadable artifact based only on HTTP 200.
 - `./scripts/tako-image.sh` selects the native Gemini path automatically, requests base64 on GPT/Grok (JSON edits for Grok; current upstream multipart conversion drops response_format), and reports HTTP failures with a nonzero exit. It does not automatically retry paid requests.
 
