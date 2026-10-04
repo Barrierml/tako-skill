@@ -75,6 +75,8 @@ Do not call video endpoints. Keep the API key in the Authorization header only.
 
 See [`SKILL.md`](./SKILL.md) for the contract agents should follow.
 
+For complete image examples, model routing and saving results, read [图片生成与改图](./references/images.md). The image helper supports GPT/Grok Images API and native Gemini image generation/editing.
+
 ## Security
 
 - Put the key in the environment only.

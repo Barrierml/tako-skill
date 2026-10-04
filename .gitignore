@@ -6,5 +6,9 @@
 *.png
 *.jpg
 *.webp
+!/assets/images/*.webp
 response.json
 out.json
+
+__pycache__/
+*.pyc
