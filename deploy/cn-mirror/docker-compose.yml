@@ -1,0 +1,9 @@
+services:
+  tako-skill-mirror:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "8098:80"
+    volumes:
+      - /srv/tako-skill-mirror:/usr/share/nginx/html:ro
+      - /srv/tako-skill-mirror/nginx.conf:/etc/nginx/conf.d/default.conf:ro
