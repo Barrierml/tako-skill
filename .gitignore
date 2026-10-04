@@ -8,3 +8,6 @@
 *.webp
 response.json
 out.json
+
+__pycache__/
+*.pyc

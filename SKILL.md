@@ -98,28 +98,23 @@ Rules:
 
 ## 2. Images
 
-Synchronous OpenAI-compatible image API. Do **not** poll `/v1/images/tasks/{id}` — that is PAR, not Tako.
+Read [references/images.md](references/images.md) for model selection, user examples, response decoding and limitations. The live image checks below are dated **2026-10-04**; visibility still depends on the user's token.
 
-Generate:
-
-```bash
-curl -sS "$TAKO_BASE_URL/v1/images/generations" \
-  -H "Authorization: Bearer $TAKO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"gpt-image-2","prompt":"a tiny red apple on a white table, simple photo","n":1}'
-```
-
-Edit:
+- Default: `gpt-image-2`. GPT `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` also passed generation and multipart editing.
+- Gemini `gemini-3.1-flash-image` / `gemini-3-pro-image`: use native `/v1beta/models/{model}:generateContent` with `inlineData` for editing. The deployed Images compatibility edit path drops references and returns the wrong response shape; do not use that path until the fix is deployed and verified.
+- Grok `grok-imagine-image-quality`: request `response_format=b64_json`. Its default CDN URL download failed in the verification environment; do not claim a downloadable artifact based only on HTTP 200.
+- `./scripts/tako-image.sh` selects the native Gemini path automatically, requests base64 on GPT/Grok (JSON edits for Grok; current upstream multipart conversion drops response_format), and reports HTTP failures with a nonzero exit. It does not automatically retry paid requests.
 
 ```bash
-curl -sS "$TAKO_BASE_URL/v1/images/edits" \
-  -H "Authorization: Bearer $TAKO_API_KEY" \
-  -F "image=@./input.png;type=image/png" \
-  -F "prompt=make the apple green" \
-  -F "model=gpt-image-2"
+./scripts/tako-image.sh generate "a tiny red apple on a white table" \
+  --out response.json --save-image output/apple.png
+./scripts/tako-image.sh edit output/apple.png "change only the apple to green; preserve everything else" \
+  --model gemini-3.1-flash-image --out edited.json --save-image output/edited.png
 ```
 
-Default model: `gpt-image-2`. If Tako returns `data[].url`, show that URL. If only `b64_json` exists, decode to a file.
+`--out` writes JSON; `--save-image` writes image bytes with their actual extension. Report the emitted path, open the file to verify it, and for edits compare it against the reference. Keep a successful response if image saving fails; do not regenerate solely to retry a download. Never attach the Tako key to a CDN request.
+
+Do not poll `/v1/images/tasks/{id}` or call `/v1/images/variations`. Do not silently change the user's chosen model. Masks, multi-reference preservation, transparency and advanced output settings have not been validated across every model.
 
 ## 3. System One decisions
 
