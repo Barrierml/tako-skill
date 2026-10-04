@@ -23,6 +23,7 @@ Read the relevant reference before constructing the request; load other referenc
 
 | Task | Read | Helper / API |
 | --- | --- | --- |
+| Check token or billing usage | [usage](references/usage.md) | `scripts/tako-usage.sh`; read-only `GET /v1/usage/token/` or billing endpoints |
 | Search and cite sources | [search](references/search.md) | `scripts/tako-search.sh`; `POST /v1/search` |
 | Generate an image | [images](references/images.md) | `scripts/tako-image.sh generate`; `POST /v1/images/generations` |
 | Edit one reference image | [images](references/images.md) | `scripts/tako-image.sh edit`; `POST /v1/images/edits` or native Gemini |
@@ -52,6 +53,7 @@ Minimal helper invocation from the skill directory:
 - Search: cite `results[].url` when present. An empty results array can accompany a valid `answer`; do not invent citations.
 - Images: preserve a successful response with `--out`, save/decode actual bytes, report the emitted path and inspect the image. A 200 or base64 string alone is not a finished image artifact. Saving follows actual PNG/JPEG/WebP extension and refuses overwrites.
 - System One: use `model=jev-latest` by default and read `answers`; a returned versioned model id is valid. Keep question types and criteria in the reference's schema.
+- Usage: when the user asks about remaining quota, run the read-only usage helper before a paid operation. Distinguish current-token quota from account billing windows; never add the two values together.
 - HTTP failures: inspect status and response. Search/System One curl helpers can exit zero on HTTP errors; process status alone is insufficient. `401/403` suggests Key/access, billing errors suggest account/subscription quota, `422` suggests malformed questions.
 - Paid image calls: no automatic retries. On timeout, rate limits or saving failures, inspect usage and any saved response before deciding whether to repeat the request. Reuse a successful response to recover an image instead of regenerating.
 - Send the Tako Key only to the configured API root, never to image CDNs. Do not follow API redirects that could forward credentials.

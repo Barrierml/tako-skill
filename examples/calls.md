@@ -50,3 +50,14 @@
 ```
 
 这条 helper 只发一个 Noul 问题。分类与打分见 [Choice / Score / Noul 完整请求](../references/systemone.md#同时做分类打分和紧急判断)。不使用聊天接口代替。
+
+## 查询用量
+
+用户问“还剩多少额度”时，先执行只读查询：
+
+```bash
+./scripts/tako-usage.sh token
+./scripts/tako-usage.sh billing
+```
+
+前者看当前 Key 的 `total_available`，后者看订阅窗口和聚合消费；不要把两套数值相加。字段含义和错误处理见 [用量与额度](../references/usage.md)。

@@ -2,7 +2,7 @@
 
 让你的 AI 助手搜索资料、生成和修改图片，以及完成分类、打分等结构化判断。使用同一个 Tako 用户 API Key，按需调用对应能力。
 
-[快速开始](docs/getting-started.md) · [图片与提示词](references/images.md) · [常见问题](docs/troubleshooting.md) · [Tako 控制台](https://tako.shiroha.tech)
+[快速开始](docs/getting-started.md) · [用量与额度](references/usage.md) · [图片与提示词](references/images.md) · [常见问题](docs/troubleshooting.md) · [Tako 控制台](https://tako.shiroha.tech)
 
 ![经 Tako 实际生成的陶瓷产品摄影、微缩花园插画与森林木屋](assets/images/examples-preview.webp)
 
@@ -12,6 +12,7 @@
 
 | 你想做的事 | 可以对助手这样说 | 你会得到什么 |
 | --- | --- | --- |
+| 查询用量 | “查看我当前 Tako Key 还剩多少额度，并说明模型限制。” | 当前 Key 的已用/可用额度、权限和过期信息 |
 | 搜索资料 | “用 Tako 搜索这家公司的最新资料，并附上来源链接。” | 搜索回答；有来源时附引用链接 |
 | 生成图片 | “用 Tako 生成一张暖色陶瓷杯产品图，保存图片给我。” | 可打开的图片文件 |
 | 修改图片 | “把这张图的杯子改成深青绿，保留背景、构图和光线。” | 基于参考图的修改结果 |
@@ -72,6 +73,7 @@ cd tako-skill
 | 文档 | 什么时候看 |
 | --- | --- |
 | [快速开始](docs/getting-started.md) | 安装、设置 Key、第一次使用、更新旧版本 |
+| [用量与额度](references/usage.md) | 查询当前 Key、订阅窗口、聚合消费和重试前检查 |
 | [图片生成与改图](references/images.md) | 模型选择、提示词、单图/多图、接口、解码和保存 |
 | [网页搜索](references/search.md) | 搜索参数、provider、回答与来源链接 |
 | [System One](references/systemone.md) | Choice / Score / Noul 请求及读取 `answers` |
