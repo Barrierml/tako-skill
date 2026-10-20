@@ -34,7 +34,7 @@ Use a chat model for prose, code and conversation. Do not substitute chat-comple
 
 ## Images: defaults and input boundaries
 
-- Default `gpt-image-2`, one output. Preserve an explicit model choice; do not silently switch to another model.
+- Default `gpt-image-2`, one output. `wan2.7-image` and `wan2.7-image-pro` are also available when the user's group exposes the Alibaba image channel; preserve an explicit model choice and do not silently switch models.
 - Helper routes GPT to multipart editing, Grok to JSON/base64, Gemini to native `generateContent` with `inlineData`. Read the guide for direct API formats.
 - Gemini compatibility JSON/multipart edits were fixed in `tako-20261004-1212` and return `data[].b64_json`; the reference-loss/wrong-shape defect belongs to the older `tako-20261002-1433` build.
 - Two references were jointly used by `gpt-image-2`, `gemini-3.1-flash-image`, and `grok-imagine-image-quality`. Grok's current upstream limits edit sources to three. GPT/Gemini maxima and other models' multi-image behavior were not verified.
