@@ -29,8 +29,21 @@ export TAKO_BASE_URL="https://tako.shiroha.tech"
 | `gemini-3.1-flash-image` | Images API 或原生 `generateContent` | 原生 `generateContent` + `inlineData` | 原生为 `candidates[].content.parts[].inlineData` |
 | `gemini-3-pro-image` | 同上 | 同上 | 同上 |
 | `grok-imagine-image-quality` | `/v1/images/generations` | `/v1/images/edits`，JSON `images[].image_url` | 请求 `response_format=b64_json` |
+| `wan2.7-image` | `/v1/images/generations` | `/v1/images/edits`，multipart 上传参考图 | `data[].url` 或 `data[].b64_json` |
+| `wan2.7-image-pro` | `/v1/images/generations` | `/v1/images/edits`，multipart 上传参考图 | `data[].url` 或 `data[].b64_json` |
 
 `tako-20261002-1433` 版本的 Gemini Images 兼容改图存在参考图和返回结构问题。从 `tako-20261004-1212` 起已修复；两个 Gemini 模型的 JSON 与 multipart 兼容改图均已实测返回标准 `data[].b64_json`。下文原生接口和 helper 也可使用，原生生成/改图已验证。Grok 文生图和 JSON 改图都已验证返回可解码图片。当前上游 multipart 改图会忽略 `response_format`，需要 base64 返回时请使用 JSON 或 helper。Grok 的默认 URL 返回依赖 `imgen.x.ai` 下载链路，本次本机下载超时、服务端下载被拒；优先直接请求 base64 图片。
+
+WAN 2.7 两个模型已接入阿里百炼图片适配：文生图走同步多模态生成，改图走 `/v1/images/edits` 并由服务端转换为 WAN 的消息输入。需要高级参数时可在 JSON 请求顶层传 `parameters`（参考图编辑也可传 `input`）；参数和张数以当前百炼账号、模型版本与渠道限制为准。
+
+WAN 2.7 最小生图请求：
+
+```bash
+curl --fail-with-body -sS --max-time 240 "$TAKO_BASE_URL/v1/images/generations" \
+  -H "Authorization: Bearer $TAKO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"wan2.7-image","prompt":"白色桌面上的红苹果，无文字","n":1}'
+```
 
 ## 最快方式：使用 Tako Skill helper
 

@@ -1,6 +1,6 @@
 # 常见问题
 
-[返回首页](../README.md) · [快速开始](getting-started.md) · [图片 API 排错](../references/images.md#排错)
+[返回首页](../README.md) · [快速开始](getting-started.md) · [图片 API 排错](../references/images.md#排错) · [视频 API 排错](../references/video.md#排错)
 
 ## 安装了，但助手没有使用 Skill
 
@@ -51,9 +51,15 @@ System One 用来做 Choice / Score / Noul 判断，不是聊天或内容生成�
 
 helper 只发一个 Noul 问题；Choice、Score 和多个问题请使用[完整请求例子](../references/systemone.md)。
 
-## 语音、视频、蒙版或异步任务在哪里
+## 视频任务超时或失败怎么办
 
-当前 Skill 没有语音、视频、图片异步任务/轮询或 variations 工作流。蒙版、透明背景、所有尺寸/质量组合也没有在各模型上全面验证。不要把上游或旧版 PAR 的能力直接当作 Tako 已支持；图片边界见[模型与接口指南](../references/images.md#参数费用与限制)。
+视频是异步任务：`tako-video.sh generate` 提交后轮询直到成功再下载 MP4。若超过 `--max-wait` 仍在排队，提交响应已保存到 `--out` 指定的文件，稍后用 `./scripts/tako-video.sh status --task-json task.json` 或 `status <task_id>` 恢复，不要重复提交付费。
+
+任务状态为 `FAILURE` 时读取状态 JSON 的错误说明；重新提交按新任务计费。`status --save-video` 只在任务成功后才下载。模型、分辨率和参考图要求见[视频指南](../references/video.md)。
+
+## 语音、蒙版或图片异步任务在哪里
+
+当前 Skill 支持 Grok 视频生成，但没有语音、图片异步任务/轮询或 variations 工作流。蒙版、透明背景、所有尺寸/质量组合也没有在各模型上全面验证。不要把上游或旧版 PAR 的能力直接当作 Tako 已支持；图片边界见[模型与接口指南](../references/images.md#参数费用与限制)。
 
 
 ## 用量查询

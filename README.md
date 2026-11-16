@@ -1,8 +1,8 @@
 # Tako Skill
 
-让你的 AI 助手搜索资料、生成和修改图片，以及完成分类、打分等结构化判断。使用同一个 Tako 用户 API Key，按需调用对应能力。
+让你的 AI 助手搜索资料、生成和修改图片、用 Grok 生成视频，以及完成分类、打分等结构化判断。使用同一个 Tako 用户 API Key，按需调用对应能力。
 
-[快速开始](docs/getting-started.md) · [用量与额度](references/usage.md) · [图片与提示词](references/images.md) · [常见问题](docs/troubleshooting.md) · [Tako 控制台](https://tako.shiroha.tech)
+[快速开始](docs/getting-started.md) · [用量与额度](references/usage.md) · [图片与提示词](references/images.md) · [视频生成](references/video.md) · [常见问题](docs/troubleshooting.md) · [Tako 控制台](https://tako.shiroha.tech)
 
 ![经 Tako 实际生成的陶瓷产品摄影、微缩花园插画与森林木屋](assets/images/examples-preview.webp)
 
@@ -17,6 +17,8 @@
 | 生成图片 | “用 Tako 生成一张暖色陶瓷杯产品图，保存图片给我。” | 可打开的图片文件 |
 | 修改图片 | “把这张图的杯子改成深青绿，保留背景、构图和光线。” | 基于参考图的修改结果 |
 | 使用多张参考图 | “用第一张图的主体和第二张图的场景生成一张图。” | 多参考图 API 请求；[已验证范围](references/images.md#直接调用多张参考图) |
+| 生成视频 | “用 Tako 生成一段苹果旋转的 5 秒视频，保存成 MP4。” | 可打开的 MP4 文件 |
+| 图生视频 | “用这张图作为参考，让画面缓慢推近，生成 8 秒视频。” | 基于参考图生成的视频 |
 | 分类与打分 | “用 System One 判断这份工单应该给哪个团队、是否紧急。” | Choice / Score / Noul 结构化判断 |
 
 ## 安装并开始
@@ -75,6 +77,7 @@ cd tako-skill
 | [快速开始](docs/getting-started.md) | 安装、设置 Key、第一次使用、更新旧版本 |
 | [用量与额度](references/usage.md) | 查询当前 Key、订阅窗口、聚合消费和重试前检查 |
 | [图片生成与改图](references/images.md) | 模型选择、提示词、单图/多图、接口、解码和保存 |
+| [视频生成](references/video.md) | Grok 视频模型、文生视频/图生视频、任务轮询、MP4 下载 |
 | [网页搜索](references/search.md) | 搜索参数、provider、回答与来源链接 |
 | [System One](references/systemone.md) | Choice / Score / Noul 请求及读取 `answers` |
 | [命令与任务示例](examples/calls.md) | 复制一条命令或给助手一段具体任务 |
@@ -83,11 +86,12 @@ cd tako-skill
 
 ## 当前能力边界
 
-图片核验日期：**2026-10-04**。六个模型均验证了生图和可用的单图编辑路径；具体接口与限制见图片指南。搜索和 System One 的说明来自既有契约与历史记录，本轮图片核验没有重新测试这两项。
+图片核验日期：**2026-10-04**。现有六个已核验模型之外，`wan2.7-image` 与 `wan2.7-image-pro` 已接入图片模型列表和阿里百炼适配；WAN 的实时可用性取决于分组、渠道和上游账号，具体接口与限制见图片指南。搜索和 System One 的说明来自既有契约与历史记录，本轮图片核验没有重新测试这两项。
 
+- **Grok 视频生成已接入**：`grok-imagine-video` 支持文生视频和可选参考图，`grok-imagine-video-1.5` 只做图生视频且独有 `1080p`；时长 1–15 秒，模型间能力差异见[视频指南](references/video.md)。视频任务为异步提交+轮询+下载，费用按秒和分辨率计，显著高于单图。
 - **多图 API 已有可用路径，helper / 游乐场仍只收一张参考图。** 两张参考图已在 GPT Image 2、Gemini Flash Image、Grok Image Quality 实测；Grok 当前链路最多三张，GPT/Gemini 最大数量未验证。
 - 图片编辑会重绘，不能保证区域外每个像素保持不变；蒙版、多图精确保留和所有尺寸/质量组合没有跨模型全面验证。
-- 当前 Skill 不提供视频、语音、图片异步任务轮询或 variations 工作流。
+- 当前 Skill 不提供语音、图片异步任务轮询或 variations 工作流。
 - Key 的分组、模型权限、额度会影响你能调用的模型。超时或保存失败时先检查响应与用量，避免重复付费生成。
 
 本仓库旧名 `Barrierml/agent-skills` 已重定向到此处；新安装使用 `Barrierml/tako-skill`。更新命令见快速开始。

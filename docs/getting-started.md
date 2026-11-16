@@ -2,7 +2,7 @@
 
 先准备 Tako 用户 Key，安装 Skill，再完成一次能看到结果的任务。图片请求有真实额度消费，首次先生成一张。
 
-[返回首页](../README.md) · [图片示例](../references/images.md) · [常见问题](troubleshooting.md)
+[返回首页](../README.md) · [图片示例](../references/images.md) · [视频生成](../references/video.md) · [常见问题](troubleshooting.md)
 
 ## 1. 准备账户和 Key
 
@@ -89,7 +89,7 @@ git pull --ff-only
 
 助手会按自己的 Skill 安装目录运行 helper，命令路径不一定是当前项目的 `./scripts/`。
 
-## 3. 试试改图或其他任务
+## 3. 试试改图、视频或其他任务
 
 修改刚才保存的图片（若实际扩展名不同，替换输入路径）：
 
@@ -101,7 +101,18 @@ git pull --ff-only
 
 每次修改都会消费新的额度。参考图越多，越要明确各图用途；目前 helper 只收一张，多图用[直接 API 示例](../references/images.md#直接调用多张参考图)。
 
+生成一段短视频（任务异步执行，helper 会轮询并保存 MP4；视频按秒计费，先用 480p 短时长验收）：
+
+```bash
+./scripts/tako-video.sh generate "白色桌面上的红苹果缓慢旋转，简洁摄影，无文字" \
+  --duration 5 --resolution 480p \
+  --out video-task.json --save-video output/apple-clip.mp4
+```
+
+也可以把刚才的图片作为参考图做图生视频：`--image output/apple.png`，换 `grok-imagine-video-1.5` 可出 1080p（该模型必须带参考图）。
+
 - 看漂亮效果：[图片与完整提示词](../references/images.md#看效果三个生图例子与一次改图)。
+- 视频模型、轮询与恢复：[视频生成](../references/video.md)。
 - 找资料并引用来源：[网页搜索](../references/search.md)。
 - 分类、路由、打分：[System One](../references/systemone.md)。
 - Key、权限或保存失败：[常见问题](troubleshooting.md)。
