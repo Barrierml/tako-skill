@@ -35,6 +35,16 @@
 
 完整两图请求、输入资产和已验证模型见[多参考图例子](../references/images.md#直接调用多张参考图)。`tako-image.sh edit` 当前不是多文件命令。
 
+## 生成视频并保存
+
+```bash
+./scripts/tako-video.sh generate "暖色桌面上的苹果缓慢旋转，简洁摄影，无文字" \
+  --duration 5 --resolution 480p --aspect-ratio 16:9 \
+  --out video-task.json --save-video output/apple-clip.mp4
+```
+
+helper 会提交任务、轮询直到完成再下载 MP4；任务 JSON 先保存，超时可用 `status` 恢复。图生视频加 `--image` 参考图；`grok-imagine-video-1.5` 必须带参考图、支持 `1080p`。模型与排错见[视频生成](../references/video.md)。
+
 ## 搜索并引用来源
 
 ```bash

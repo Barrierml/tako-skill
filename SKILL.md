@@ -1,11 +1,11 @@
 ---
 name: tako-skill
-description: Use Tako for billed web search with sources, image generation/editing with one or multiple references, and System One Choice/Score/Noul decisions. Use when the user wants these tasks through Tako; not for ordinary chat, speech or video.
+description: Use Tako for billed web search with sources, image generation/editing with one or multiple references, Grok video generation (text-to-video and image-to-video), and System One Choice/Score/Noul decisions. Use when the user wants these tasks through Tako; not for ordinary chat or speech.
 ---
 
 # Tako Skill
 
-Use one Tako user Key for search, images and structured decisions. Preserve the user's chosen model and task. Calls may consume account or subscription quota.
+Use one Tako user Key for search, images, video and structured decisions. Preserve the user's chosen model and task. Calls may consume account or subscription quota.
 
 ## Setup
 
@@ -28,6 +28,7 @@ Read the relevant reference before constructing the request; load other referenc
 | Generate an image | [images](references/images.md) | `scripts/tako-image.sh generate`; `POST /v1/images/generations` |
 | Edit one reference image | [images](references/images.md) | `scripts/tako-image.sh edit`; `POST /v1/images/edits` or native Gemini |
 | Edit or combine multiple references | [multi-reference recipe](references/images.md#直接调用多张参考图) | Direct JSON `images[].image_url`; the helper takes one image |
+| Generate a video (text-to-video or image-to-video) | [video](references/video.md) | `scripts/tako-video.sh generate`; `POST /v1/videos/generations` then poll `GET /v1/videos/{id}` |
 | Classify, route, score or judge urgency | [System One](references/systemone.md) | `scripts/tako-systemone.sh` for one Noul; direct `POST /v1/systemone` for other question types |
 
 Use a chat model for prose, code and conversation. Do not substitute chat-completions for search or System One. `jev-latest` is a decision model, not a chat model; `/v1/models` discovery is not guaranteed to list it. The public pricing catalog includes `jev-latest` as of 2026-10-04.
@@ -48,6 +49,17 @@ Minimal helper invocation from the skill directory:
   --out response.json --save-image output/mug.png
 ```
 
+## Video: defaults and input boundaries
+
+- Default `grok-imagine-video`, `480p`, 5 seconds. `grok-imagine-video-1.5` is image-to-video only — it requires a reference image and is the only model that supports `1080p`. Duration is an integer 1–15 seconds.
+- Video tasks are asynchronous: `generate` submits, polls until `SUCCESS`/`done`, then downloads the MP4 from `/v1/videos/{id}/content`. A finished MP4 is the only finished artifact — a 200 or a `SUCCESS` status alone is not a delivered video.
+- The submitted response is saved with `--out` before polling, so a timed-out or failed poll can be resumed with `scripts/tako-video.sh status <task_id>` instead of paying for a new submission.
+
+```bash
+./scripts/tako-video.sh generate "a coral ceramic mug slowly rotating, product shot" \
+  --duration 5 --resolution 480p --out task.json --save-video output/mug.mp4
+```
+
 ## Deliver and recover
 
 - Search: cite `results[].url` when present. An empty results array can accompany a valid `answer`; do not invent citations.
@@ -56,10 +68,11 @@ Minimal helper invocation from the skill directory:
 - Usage: when the user asks about remaining quota, run the read-only usage helper before a paid operation. Distinguish current-token quota from account billing windows; never add the two values together.
 - HTTP failures: inspect status and response. Search/System One curl helpers can exit zero on HTTP errors; process status alone is insufficient. `401/403` suggests Key/access, billing errors suggest account/subscription quota, `422` suggests malformed questions.
 - Paid image calls: no automatic retries. On timeout, rate limits or saving failures, inspect usage and any saved response before deciding whether to repeat the request. Reuse a successful response to recover an image instead of regenerating.
-- Send the Tako Key only to the configured API root, never to image CDNs. Do not follow API redirects that could forward credentials.
+- Video: same no-retry rule, and per-second billing makes blind resubmission costlier. On poll timeout or failure, reuse the saved task JSON with `status`/`--task-json`; only resubmit after confirming the task cannot be recovered.
+- Send the Tako Key only to the configured API root, never to image or video CDNs. Do not follow API redirects that could forward credentials.
 
 ## Unsupported or unverified workflows
 
-Do not use this skill for speech, video, image tasks polling, async/batch or `/v1/images/variations`. Do not assume masks, transparency, exact multi-reference preservation or every size/quality combination works across models.
+Do not use this skill for speech, image task polling, async/batch image APIs or `/v1/images/variations`. Do not assume masks, transparency, exact multi-reference preservation or every size/quality combination works across models.
 
-Image behavior above was verified on 2026-10-04. Search and System One references describe the existing contract and earlier checks; they were not re-tested in that image verification. Troubleshooting: [common questions](docs/troubleshooting.md).
+Image behavior above was verified on 2026-10-04. Grok video generation was added to the API on 2026-11-16. Search and System One references describe the existing contract and earlier checks; they were not re-tested in that image verification. Troubleshooting: [common questions](docs/troubleshooting.md).
