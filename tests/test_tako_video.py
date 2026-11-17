@@ -107,6 +107,36 @@ class VideoHelperContract(unittest.TestCase):
         finally:
             server.shutdown(); server.server_close(); thread.join()
 
+    def test_generate_15_text_to_video_without_image(self):
+        bodies = []
+        @silent
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                bodies.append(json.loads(self.rfile.read(int(self.headers['Content-Length']))))
+                self.send_response(200); self.end_headers()
+                self.wfile.write(json.dumps({'id': 'task-15'}).encode())
+            def do_GET(self):
+                self.send_response(200); self.end_headers()
+                if self.path.endswith('/content'):
+                    self.wfile.write(MP4)
+                else:
+                    self.wfile.write(json.dumps({'status': 'SUCCESS'}).encode())
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as temporary:
+                env = self.make_env(server.server_port)
+                run = self.run_helper(['generate', 'a red apple spins slowly',
+                                       '--model', 'grok-imagine-video-1.5',
+                                       '--duration', '1', '--resolution', '480p',
+                                       '--save-video', str(Path(temporary)/'clip.mp4')], env)
+                self.assertEqual(run.returncode, 0, run.stderr)
+                request = bodies[0]
+                self.assertEqual(request['model'], 'grok-imagine-video-1.5')
+                self.assertNotIn('image', request)
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+
     def test_failed_task_exits_nonzero_without_download(self):
         @silent
         class Handler(BaseHTTPRequestHandler):

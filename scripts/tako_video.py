@@ -215,7 +215,7 @@ def main():
     gen.add_argument('--duration', type=int, default=5)
     gen.add_argument('--resolution', default='480p')
     gen.add_argument('--aspect-ratio')
-    gen.add_argument('--image', help='reference image path or URL for image-to-video')
+    gen.add_argument('--image', help='optional reference image path or URL for image-to-video')
     gen.add_argument('--poll-interval', type=float, default=5)
     gen.add_argument('--max-wait', type=float, default=1200)
     gen.add_argument('--out', help='save submitted task JSON')
