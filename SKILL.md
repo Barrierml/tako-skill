@@ -51,7 +51,7 @@ Minimal helper invocation from the skill directory:
 
 ## Video: defaults and input boundaries
 
-- Default `grok-imagine-video-1.5`, `480p`, 5 seconds — it produces better visual quality and motion coherence, accepts text-to-video and image-to-video (reference image optional for both models), and is the only model that supports `1080p`. `grok-imagine-video` remains an optional lighter alternative, limited to `480p`/`720p`. Duration is an integer 1–15 seconds.
+- `grok-imagine-video-1.5` is the only video model; the helper always submits it and maps the legacy name `grok-imagine-video` to it. Default `480p`, 5 seconds; `1080p` is available. Text-to-video and image-to-video are both supported; the reference image is optional. Duration is an integer 1–15 seconds.
 - Video tasks are asynchronous: `generate` submits, polls until `SUCCESS`/`done`, then downloads the MP4 from `/v1/videos/{id}/content`. A finished MP4 is the only finished artifact — a 200 or a `SUCCESS` status alone is not a delivered video.
 - The submitted response is saved with `--out` before polling, so a timed-out or failed poll can be resumed with `scripts/tako-video.sh status <task_id>` instead of paying for a new submission.
 

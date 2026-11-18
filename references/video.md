@@ -6,17 +6,16 @@
 
 与图片相同：在 [Tako 控制台](https://tako.shiroha.tech)创建用户 Key，在运行命令的终端设置 `TAKO_BASE_URL` 和完整的 `TAKO_API_KEY`。Key 的分组和模型权限必须允许视频模型。
 
-## 两个 Grok 视频模型
+## 视频模型
 
 | 模型 | 文生视频 | 图生视频 | 分辨率 | 时长 |
 | --- | --- | --- | --- | --- |
 | `grok-imagine-video-1.5` | 支持 | 支持（参考图可选） | `480p`（默认）、`720p`、`1080p` | 1–15 秒，helper 默认 5 |
-| `grok-imagine-video` | 支持 | 支持（参考图可选） | `480p`、`720p` | 1–15 秒 |
 
-helper 默认使用 `grok-imagine-video-1.5`：画质与物理连贯性更好，且独有 `1080p`。`grok-imagine-video` 只到 `720p`，作为更轻量的备选，需要时用 `--model grok-imagine-video` 显式指定。
+helper 始终使用 `grok-imagine-video-1.5`：画质与物理连贯性更好，支持 `1080p`。
 
 - `aspect_ratio` 可选，例如 `16:9`、`9:16`、`1:1`。
-- 参考图可以传本地文件（helper 编码为 `data:image/...;base64,...`）或公网 URL；两个模型的参考图均为可选，不传即为文生视频。
+- 参考图可以传本地文件（helper 编码为 `data:image/...;base64,...`）或公网 URL；参考图为可选，不传即为文生视频。
 - 视频生成排队与渲染耗时明显长于图片；helper 默认最长等待 20 分钟，可用 `--max-wait` 调整。
 
 ## 最快方式：使用 Tako Skill helper
@@ -122,8 +121,8 @@ curl --fail-with-body -sS --max-time 240 "$TAKO_BASE_URL/v1/videos/$TASK_ID/cont
 
 ## 参数、费用与限制
 
-- `duration` 为整数秒，当前范围 1–15。`resolution` 仅 `480p`/`720p`/`1080p`，其中 `1080p` 只有 `grok-imagine-video-1.5` 支持；不传 `--model` 时 helper 默认 `grok-imagine-video-1.5`。
-- `grok-imagine-video` 与 `grok-imagine-video-1.5` 都支持文生视频和图生视频，参考图对两者均为可选。
+- `duration` 为整数秒，当前范围 1–15。`resolution` 仅 `480p`/`720p`/`1080p`；helper 固定提交 `grok-imagine-video-1.5`。
+- `grok-imagine-video-1.5` 支持文生视频和图生视频，参考图为可选。
 - 视频费用按模型、分辨率与时长计费，明显贵于单张图片；先跑一条 480p 短视频验收，再扩分辨率与时长。
 - 生成结果是模型按提示词采样，不能逐帧保证与参考图一致；在提示词里写清主体、镜头运动和必须保留的元素。
 - 审核或上游失败时任务状态会变成失败；读取状态 JSON 中的错误说明，调整提示词后重新提交是一次新的付费请求。
@@ -136,7 +135,7 @@ curl --fail-with-body -sS --max-time 240 "$TAKO_BASE_URL/v1/videos/$TASK_ID/cont
 | `401`，无效令牌 | 检查完整 Key、过期/禁用状态和 Key 剩余额度 |
 | `403`，无权访问分组或模型 | 在控制台核对 Key 分组和视频模型权限 |
 | 余额/订阅额度不足 | 查看账户和订阅用量；视频按秒计费，成本高于图片 |
-| 参数错误 / `invalid_request` | 检查模型名、`duration` 1–15 整数、`resolution` 组合（`1080p` 仅 `grok-imagine-video-1.5`） |
+| 参数错误 / `invalid_request` | 检查模型名、`duration` 1–15 整数、`resolution` 组合（`1080p` 仅 `grok-imagine-video-1.5`）；旧名 `grok-imagine-video` 会被 helper 自动当作 `grok-imagine-video-1.5` |
 | 一直 `PENDING`/`RUNNING` | 增加 `--max-wait`，或保存 task id 后稍后用 `status` 恢复 |
 | 任务 `FAILURE` | 读取状态 JSON 的错误信息；调整提示词，重新提交按新任务计费 |
 | 下载到的不是 MP4 | 确认任务已成功且响应不是错误 JSON；`--save-video` 会校验 `ftyp` 头 |

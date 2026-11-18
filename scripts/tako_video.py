@@ -16,6 +16,7 @@ STATUSES_PATH = '/v1/videos/{task_id}'
 CONTENT_PATH = '/v1/videos/{task_id}/content'
 SUCCESS_STATES = {'success', 'succeeded', 'done', 'completed', 'finished', 'ok'}
 FAILURE_STATES = {'failure', 'failed', 'error', 'cancelled', 'canceled', 'rejected', 'expired'}
+MODEL_ALIASES = {'grok-imagine-video': 'grok-imagine-video-1.5'}
 
 
 class NoAPIRedirect(urllib.request.HTTPRedirectHandler):
@@ -152,7 +153,10 @@ def reference_image_value(source):
 
 
 def generate(args, base, key):
-    body = {'model': args.model, 'prompt': args.prompt,
+    model = MODEL_ALIASES.get(args.model, args.model)
+    if model != args.model:
+        print(f'model {args.model!r} is deprecated; submitting as {model!r}', file=sys.stderr)
+    body = {'model': model, 'prompt': args.prompt,
             'duration': args.duration, 'resolution': args.resolution}
     if args.aspect_ratio:
         body['aspect_ratio'] = args.aspect_ratio
