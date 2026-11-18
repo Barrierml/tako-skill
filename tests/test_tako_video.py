@@ -63,7 +63,7 @@ class VideoHelperContract(unittest.TestCase):
                 self.assertEqual((root/'clip.mp4').read_bytes(), MP4)
                 self.assertIn('Submitted video task: task-42', run.stderr)
                 request = received[0][2]
-                self.assertEqual(request['model'], 'grok-imagine-video')
+                self.assertEqual(request['model'], 'grok-imagine-video-1.5')
                 self.assertEqual(request['duration'], 5)
                 self.assertEqual(request['resolution'], '480p')
                 self.assertEqual(request['aspect_ratio'], '16:9')

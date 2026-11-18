@@ -10,8 +10,10 @@
 
 | 模型 | 文生视频 | 图生视频 | 分辨率 | 时长 |
 | --- | --- | --- | --- | --- |
-| `grok-imagine-video` | 支持 | 支持（参考图可选） | `480p`（默认）、`720p` | 1–15 秒，helper 默认 5 |
-| `grok-imagine-video-1.5` | 支持 | 支持（参考图可选） | `480p`、`720p`、`1080p` | 1–15 秒 |
+| `grok-imagine-video-1.5` | 支持 | 支持（参考图可选） | `480p`（默认）、`720p`、`1080p` | 1–15 秒，helper 默认 5 |
+| `grok-imagine-video` | 支持 | 支持（参考图可选） | `480p`、`720p` | 1–15 秒 |
+
+helper 默认使用 `grok-imagine-video-1.5`：画质与物理连贯性更好，且独有 `1080p`。`grok-imagine-video` 只到 `720p`，作为更轻量的备选，需要时用 `--model grok-imagine-video` 显式指定。
 
 - `aspect_ratio` 可选，例如 `16:9`、`9:16`、`1:1`。
 - 参考图可以传本地文件（helper 编码为 `data:image/...;base64,...`）或公网 URL；两个模型的参考图均为可选，不传即为文生视频。
@@ -64,7 +66,7 @@ curl --fail-with-body -sS --max-time 240 "$TAKO_BASE_URL/v1/videos/generations" 
   -H "Content-Type: application/json" \
   --output task.json \
   -d '{
-    "model": "grok-imagine-video",
+    "model": "grok-imagine-video-1.5",
     "prompt": "一颗红苹果在白色桌面上缓慢旋转，简洁摄影，无文字",
     "duration": 5,
     "resolution": "480p",
@@ -120,7 +122,7 @@ curl --fail-with-body -sS --max-time 240 "$TAKO_BASE_URL/v1/videos/$TASK_ID/cont
 
 ## 参数、费用与限制
 
-- `duration` 为整数秒，当前范围 1–15。`resolution` 仅 `480p`/`720p`/`1080p`，其中 `1080p` 只有 `grok-imagine-video-1.5` 支持。
+- `duration` 为整数秒，当前范围 1–15。`resolution` 仅 `480p`/`720p`/`1080p`，其中 `1080p` 只有 `grok-imagine-video-1.5` 支持；不传 `--model` 时 helper 默认 `grok-imagine-video-1.5`。
 - `grok-imagine-video` 与 `grok-imagine-video-1.5` 都支持文生视频和图生视频，参考图对两者均为可选。
 - 视频费用按模型、分辨率与时长计费，明显贵于单张图片；先跑一条 480p 短视频验收，再扩分辨率与时长。
 - 生成结果是模型按提示词采样，不能逐帧保证与参考图一致；在提示词里写清主体、镜头运动和必须保留的元素。

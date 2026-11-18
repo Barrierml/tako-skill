@@ -211,7 +211,7 @@ def main():
     modes = parser.add_subparsers(dest='command', required=True)
     gen = modes.add_parser('generate', help='submit a video task, poll it and save the MP4')
     gen.add_argument('prompt')
-    gen.add_argument('--model', default='grok-imagine-video')
+    gen.add_argument('--model', default='grok-imagine-video-1.5')
     gen.add_argument('--duration', type=int, default=5)
     gen.add_argument('--resolution', default='480p')
     gen.add_argument('--aspect-ratio')

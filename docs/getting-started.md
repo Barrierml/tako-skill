@@ -109,7 +109,7 @@ git pull --ff-only
   --out video-task.json --save-video output/apple-clip.mp4
 ```
 
-也可以把刚才的图片作为参考图做图生视频：`--image output/apple.png`（两个模型都可选传）；换 `grok-imagine-video-1.5` 可出 1080p。
+也可以把刚才的图片作为参考图做图生视频：`--image output/apple.png`（两个模型都可选传）。默认走 `grok-imagine-video-1.5`，画质更好且支持 1080p；需要更轻的 `grok-imagine-video` 时加 `--model`。
 
 - 看漂亮效果：[图片与完整提示词](../references/images.md#看效果三个生图例子与一次改图)。
 - 视频模型、轮询与恢复：[视频生成](../references/video.md)。
