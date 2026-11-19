@@ -43,7 +43,7 @@
   --out video-task.json --save-video output/apple-clip.mp4
 ```
 
-helper 会提交任务、轮询直到完成再下载 MP4；任务 JSON 先保存，超时可用 `status` 恢复。视频模型为 `grok-imagine-video-1.5`（画质与物理连贯性更好，支持 `1080p`）。图生视频加 `--image` 参考图（可选传）。模型与排错见[视频生成](../references/video.md)。
+helper 会提交任务、轮询直到完成再下载 MP4；任务 JSON 先保存，超时可用 `status` 恢复。视频模型为 `grok-imagine-video-1.5`（画质与物理连贯性更好，支持 `1080p`）。图生视频加 `--image` 参考图（可选传）；`--last-frame` 锁尾帧、`--ref-image` 可重复传多参考图保持角色 / 商品一致（prompt 中用 `@image0`、`@image1` 引用）、`--edit-video` 用自然语言编辑已有 MP4、`--extend-video` 无缝续写 2–10 秒。模型与排错见[视频生成](../references/video.md)。
 
 ## 搜索并引用来源
 

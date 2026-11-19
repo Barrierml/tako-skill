@@ -1,6 +1,6 @@
 ---
 name: tako-skill
-description: Use Tako for billed web search with sources, image generation/editing with one or multiple references, Grok video generation (text-to-video and image-to-video), and System One Choice/Score/Noul decisions. Use when the user wants these tasks through Tako; not for ordinary chat or speech.
+description: Use Tako for billed web search with sources, image generation/editing with one or multiple references, Grok video generation (text-to-video, image-to-video, first/last-frame interpolation, multi-reference consistency, video editing and seamless extension), and System One Choice/Score/Noul decisions. Use when the user wants these tasks through Tako; not for ordinary chat or speech.
 ---
 
 # Tako Skill
@@ -29,6 +29,8 @@ Read the relevant reference before constructing the request; load other referenc
 | Edit one reference image | [images](references/images.md) | `scripts/tako-image.sh edit`; `POST /v1/images/edits` or native Gemini |
 | Edit or combine multiple references | [multi-reference recipe](references/images.md#直接调用多张参考图) | Direct JSON `images[].image_url`; the helper takes one image |
 | Generate a video (text-to-video or image-to-video) | [video](references/video.md) | `scripts/tako-video.sh generate`; `POST /v1/videos/generations` then poll `GET /v1/videos/{id}` |
+| First/last-frame interpolation or multi-reference consistency | [video](references/video.md) | `generate --image --last-frame`; `--ref-image` repeatable, cite `@image0`/`@image1` in the prompt |
+| Edit or extend an existing MP4 | [video](references/video.md) | `generate --edit-video` → `POST /v1/videos/edits`; `generate --extend-video` (2–10s) → `POST /v1/videos/extensions` |
 | Classify, route, score or judge urgency | [System One](references/systemone.md) | `scripts/tako-systemone.sh` for one Noul; direct `POST /v1/systemone` for other question types |
 
 Use a chat model for prose, code and conversation. Do not substitute chat-completions for search or System One. `jev-latest` is a decision model, not a chat model; `/v1/models` discovery is not guaranteed to list it. The public pricing catalog includes `jev-latest` as of 2026-10-04.
@@ -51,7 +53,8 @@ Minimal helper invocation from the skill directory:
 
 ## Video: defaults and input boundaries
 
-- `grok-imagine-video-1.5` is the only video model; the helper always submits it and maps the legacy name `grok-imagine-video` to it. Default `480p`, 5 seconds; `1080p` is available. Text-to-video and image-to-video are both supported; the reference image is optional. Duration is an integer 1–15 seconds.
+- `grok-imagine-video-1.5` is the only video model; the helper always submits it and maps the legacy name `grok-imagine-video` to it. Default `480p`, 5 seconds; `1080p` is available. Text-to-video and image-to-video are both supported; the reference image is optional. Duration is an integer 1–15 seconds for generation/editing and 2–10 seconds for extension.
+- Advanced inputs on `generate`: `--last-frame` locks the last frame (with `--image` it interpolates between the two frames and the prompt becomes optional); repeatable `--ref-image` keeps characters/products consistent across `@imageN` prompt citations; `--edit-video` rewrites an existing MP4 by prompt via `/v1/videos/edits`; `--extend-video` continues an MP4 from its last frame via `/v1/videos/extensions`. Edit and extend take a local MP4 ≤20MB or a URL, are mutually exclusive, and combine only with a prompt.
 - Video tasks are asynchronous: `generate` submits, polls until `SUCCESS`/`done`, then downloads the MP4 from `/v1/videos/{id}/content`. A finished MP4 is the only finished artifact — a 200 or a `SUCCESS` status alone is not a delivered video.
 - The submitted response is saved with `--out` before polling, so a timed-out or failed poll can be resumed with `scripts/tako-video.sh status <task_id>` instead of paying for a new submission.
 

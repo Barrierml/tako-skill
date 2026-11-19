@@ -68,11 +68,142 @@ class VideoHelperContract(unittest.TestCase):
                 self.assertEqual(request['resolution'], '480p')
                 self.assertEqual(request['aspect_ratio'], '16:9')
                 self.assertNotIn('image', request)
+                self.assertNotIn('last_frame', request)
+                self.assertNotIn('reference_images', request)
+                self.assertNotIn('mode', request)
                 self.assertEqual(received[1][2], 'Bearer test-user-key')
                 self.assertEqual(received[2][2], 'Bearer test-user-key')
                 self.assertNotIn('test-user-key', run.stderr + run.stdout)
         finally:
             server.shutdown(); server.server_close(); thread.join()
+
+    def recording_server(self):
+        bodies = []
+        @silent
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                bodies.append((self.path, json.loads(self.rfile.read(int(self.headers['Content-Length'])))))
+                self.send_response(200); self.end_headers()
+                self.wfile.write(json.dumps({'id': 'task-x'}).encode())
+            def do_GET(self):
+                self.send_response(200); self.end_headers()
+                if self.path.endswith('/content'):
+                    self.wfile.write(MP4)
+                else:
+                    self.wfile.write(json.dumps({'status': 'SUCCESS'}).encode())
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        self.addCleanup(self.stop_server, server, thread)
+        return server, bodies
+
+    def stop_server(self, server, thread):
+        server.shutdown(); server.server_close(); thread.join()
+
+    def test_generate_first_last_frame_interpolation(self):
+        server, bodies = self.recording_server()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root/'first.png').write_bytes(PNG)
+            (root/'last.png').write_bytes(PNG)
+            env = self.make_env(server.server_port)
+            run = self.run_helper(['generate', 'smooth transition',
+                                   '--image', str(root/'first.png'),
+                                   '--last-frame', str(root/'last.png')], env)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            request = bodies[0][1]
+            self.assertEqual(bodies[0][0], '/v1/videos/generations')
+            self.assertTrue(request['image'].startswith('data:image/png;base64,'))
+            self.assertTrue(request['last_frame'].startswith('data:image/png;base64,'))
+            self.assertEqual(base64.b64decode(request['last_frame'].split(',', 1)[1]), PNG)
+            self.assertEqual(request['prompt'], 'smooth transition')
+
+    def test_generate_frame_pair_allows_missing_prompt(self):
+        server, bodies = self.recording_server()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root/'first.png').write_bytes(PNG)
+            (root/'last.png').write_bytes(PNG)
+            env = self.make_env(server.server_port)
+            run = self.run_helper(['generate',
+                                   '--image', str(root/'first.png'),
+                                   '--last-frame', str(root/'last.png')], env)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertNotIn('prompt', bodies[0][1])
+
+    def test_generate_last_frame_url_and_multi_reference_images(self):
+        server, bodies = self.recording_server()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root/'a.png').write_bytes(PNG)
+            (root/'b.png').write_bytes(PNG)
+            env = self.make_env(server.server_port)
+            run = self.run_helper(['generate', 'hero from @image0 meets @image1',
+                                   '--last-frame', 'https://cdn.example/last.png',
+                                   '--ref-image', str(root/'a.png'),
+                                   '--ref-image', str(root/'b.png')], env)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            request = bodies[0][1]
+            self.assertEqual(request['last_frame'], 'https://cdn.example/last.png')
+            self.assertNotIn('image', request)
+            self.assertEqual(len(request['reference_images']), 2)
+            self.assertEqual(len(request['reference_image_urls']), 2)
+            for entry in request['reference_images']:
+                self.assertTrue(entry['url'].startswith('data:image/png;base64,'))
+            for value in request['reference_image_urls']:
+                self.assertTrue(value.startswith('data:image/png;base64,'))
+            self.assertEqual(request['reference_images'][0]['url'],
+                             request['reference_image_urls'][0])
+
+    def test_edit_video_posts_to_edits_endpoint(self):
+        server, bodies = self.recording_server()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root/'clip.mp4').write_bytes(MP4)
+            env = self.make_env(server.server_port)
+            run = self.run_helper(['generate', 'turn the sky into sunset',
+                                   '--edit-video', str(root/'clip.mp4')], env)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            path, request = bodies[0]
+            self.assertEqual(path, '/v1/videos/edits')
+            self.assertEqual(request['mode'], 'edit')
+            self.assertTrue(request['video']['url'].startswith('data:video/mp4;base64,'))
+            self.assertEqual(base64.b64decode(request['video']['url'].split(',', 1)[1]), MP4)
+            self.assertEqual(request['prompt'], 'turn the sky into sunset')
+
+    def test_extend_video_posts_to_extensions_endpoint(self):
+        server, bodies = self.recording_server()
+        with tempfile.TemporaryDirectory() as temporary:
+            env = self.make_env(server.server_port)
+            run = self.run_helper(['generate', 'the crowd keeps cheering',
+                                   '--extend-video', 'https://cdn.example/source.mp4',
+                                   '--duration', '7'], env)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            path, request = bodies[0]
+            self.assertEqual(path, '/v1/videos/extensions')
+            self.assertEqual(request['mode'], 'extend')
+            self.assertEqual(request['video'], {'url': 'https://cdn.example/source.mp4'})
+            self.assertEqual(request['duration'], 7)
+
+    def test_edit_and_extend_argument_validation(self):
+        env = dict(os.environ, TAKO_API_KEY='test-user-key')
+        run = self.run_helper(['generate', 'x', '--edit-video', 'a.mp4',
+                               '--extend-video', 'b.mp4'], env)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn('mutually exclusive', run.stderr)
+        run = self.run_helper(['generate', '--extend-video', 'a.mp4'], env)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn('prompt', run.stderr)
+        run = self.run_helper(['generate', 'x', '--extend-video', 'a.mp4',
+                               '--duration', '15'], env)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn('2 to 10', run.stderr)
+        run = self.run_helper(['generate', 'x', '--edit-video', 'a.mp4',
+                               '--image', 'f.png'], env)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn('--image', run.stderr)
+        run = self.run_helper(['generate'], env)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn('prompt', run.stderr)
 
     def test_generate_encodes_reference_image(self):
         bodies = []
