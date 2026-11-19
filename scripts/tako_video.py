@@ -11,9 +11,12 @@ import time
 import urllib.error
 import urllib.request
 
-SUBMIT_PATH = '/v1/videos/generations'
+SUBMIT_PATHS = {'generate': '/v1/videos/generations',
+                'edit': '/v1/videos/edits',
+                'extend': '/v1/videos/extensions'}
 STATUSES_PATH = '/v1/videos/{task_id}'
 CONTENT_PATH = '/v1/videos/{task_id}/content'
+LOCAL_VIDEO_MAX_BYTES = 20 * 1024 * 1024
 SUCCESS_STATES = {'success', 'succeeded', 'done', 'completed', 'finished', 'ok'}
 FAILURE_STATES = {'failure', 'failed', 'error', 'cancelled', 'canceled', 'rejected', 'expired'}
 MODEL_ALIASES = {'grok-imagine-video': 'grok-imagine-video-1.5'}
@@ -152,17 +155,52 @@ def reference_image_value(source):
     return f'data:{mime};base64,' + base64.b64encode(image).decode()
 
 
+def video_value(source):
+    if source.startswith('http://') or source.startswith('https://'):
+        return source
+    path = Path(source)
+    data = path.read_bytes()
+    if len(data) > LOCAL_VIDEO_MAX_BYTES:
+        raise ValueError(f'local video exceeds {LOCAL_VIDEO_MAX_BYTES // 1024 // 1024}MB; '
+                         'upload it to a public URL and pass that instead')
+    if len(data) < 12 or data[4:8] != b'ftyp':
+        raise ValueError('input video must be an MP4/MOV file (ftyp header)')
+    return 'data:video/mp4;base64,' + base64.b64encode(data).decode()
+
+
+def task_mode(args):
+    if args.edit_video:
+        return 'edit'
+    if args.extend_video:
+        return 'extend'
+    return 'generate'
+
+
 def generate(args, base, key):
     model = MODEL_ALIASES.get(args.model, args.model)
     if model != args.model:
         print(f'model {args.model!r} is deprecated; submitting as {model!r}', file=sys.stderr)
-    body = {'model': model, 'prompt': args.prompt,
+    mode = task_mode(args)
+    body = {'model': model,
             'duration': args.duration, 'resolution': args.resolution}
+    if args.prompt:
+        body['prompt'] = args.prompt
     if args.aspect_ratio:
         body['aspect_ratio'] = args.aspect_ratio
-    if args.image:
-        body['image'] = reference_image_value(args.image)
-    submitted = post_json(base, SUBMIT_PATH, key, body, args.timeout)
+    if mode == 'generate':
+        if args.image:
+            body['image'] = reference_image_value(args.image)
+        if args.last_frame:
+            body['last_frame'] = reference_image_value(args.last_frame)
+        if args.ref_image:
+            values = [reference_image_value(source) for source in args.ref_image]
+            body['reference_images'] = [{'url': value} for value in values]
+            body['reference_image_urls'] = values
+    else:
+        body['mode'] = mode
+        source = args.edit_video if mode == 'edit' else args.extend_video
+        body['video'] = {'url': video_value(source)}
+    submitted = post_json(base, SUBMIT_PATHS[mode], key, body, args.timeout)
     if submitted.get('error'):
         raise ValueError('API returned an error; inspect the response and do not retry blindly')
     task_id = task_id_of(submitted)
@@ -214,12 +252,22 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_subparsers(dest='command', required=True)
     gen = modes.add_parser('generate', help='submit a video task, poll it and save the MP4')
-    gen.add_argument('prompt')
+    gen.add_argument('prompt', nargs='?',
+                     help='prompt; optional only when both --image and --last-frame are given')
     gen.add_argument('--model', default='grok-imagine-video-1.5')
     gen.add_argument('--duration', type=int, default=5)
     gen.add_argument('--resolution', default='480p')
     gen.add_argument('--aspect-ratio')
-    gen.add_argument('--image', help='optional reference image path or URL for image-to-video')
+    gen.add_argument('--image', help='optional first-frame/reference image path or URL for image-to-video')
+    gen.add_argument('--last-frame',
+                     help='optional last-frame image path or URL; combine with --image for frame interpolation')
+    gen.add_argument('--ref-image', action='append', default=[], metavar='IMAGE',
+                     help='consistency reference image path or URL; repeat for multiple, '
+                          'cite them in the prompt as @image0, @image1, ...')
+    gen.add_argument('--edit-video', metavar='MP4',
+                     help='edit an existing MP4 (path or URL) with a natural-language prompt')
+    gen.add_argument('--extend-video', metavar='MP4',
+                     help='seamlessly continue an existing MP4 (path or URL) by --duration seconds')
     gen.add_argument('--poll-interval', type=float, default=5)
     gen.add_argument('--max-wait', type=float, default=1200)
     gen.add_argument('--out', help='save submitted task JSON')
@@ -238,8 +286,24 @@ def main():
     if args.timeout <= 0:
         parser.error('--timeout must be positive')
     if args.command == 'generate':
-        if not 1 <= args.duration <= 15:
+        if args.edit_video and args.extend_video:
+            parser.error('--edit-video and --extend-video are mutually exclusive')
+        mode = task_mode(args)
+        if mode == 'extend':
+            if not 2 <= args.duration <= 10:
+                parser.error('--extend-video continues for 2 to 10 seconds; adjust --duration')
+        elif not 1 <= args.duration <= 15:
             parser.error('--duration must be between 1 and 15 seconds')
+        if mode != 'generate':
+            if args.image or args.last_frame or args.ref_image:
+                parser.error('--image/--last-frame/--ref-image only apply to new generations, '
+                             'not --edit-video/--extend-video')
+            if not args.prompt:
+                parser.error(f'--{mode}-video needs a prompt describing the change')
+        else:
+            if not args.prompt and not (args.image and args.last_frame):
+                parser.error('prompt is required unless --image and --last-frame '
+                             'lock both the first and last frame')
         if args.poll_interval <= 0 or args.max_wait <= 0:
             parser.error('--poll-interval and --max-wait must be positive')
         if args.save_video and Path(args.save_video).with_suffix('.mp4').exists():
