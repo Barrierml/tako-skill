@@ -23,7 +23,7 @@ Read the relevant reference before constructing the request; load other referenc
 
 | Task | Read | Helper / API |
 | --- | --- | --- |
-| Check token or billing usage | [usage](references/usage.md) | `scripts/tako-usage.sh`; read-only `GET /v1/usage/token/` or billing endpoints |
+| Check token or billing usage | [usage](references/usage.md) | `scripts/tako-usage.sh`; read-only `GET /api/usage/token/` or billing endpoints |
 | Search and cite sources | [search](references/search.md) | `scripts/tako-search.sh`; `POST /v1/search` |
 | Generate an image | [images](references/images.md) | `scripts/tako-image.sh generate`; `POST /v1/images/generations` |
 | Edit one reference image | [images](references/images.md) | `scripts/tako-image.sh edit`; `POST /v1/images/edits` or native Gemini |

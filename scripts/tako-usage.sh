@@ -34,7 +34,7 @@ base="${base%/}"
 auth=( -H "Authorization: Bearer ${TAKO_API_KEY}" -H "Accept: application/json" )
 
 if [[ "$mode" == "token" ]]; then
-  curl -fsS "${base}/v1/usage/token/" "${auth[@]}"
+  curl -fsS "${base}/api/usage/token/" "${auth[@]}"
   echo
   exit 0
 fi
