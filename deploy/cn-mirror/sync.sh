@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Mirror the public main branch into an atomic, nginx-readable release tree.
 # Run on the mirror host; this script never writes to the GitHub repository.
-REPO="${TAKO_SKILL_REPO:-Barrierml/tako-skill}"
+REPO="${TAKO_SKILL_REPO:-tako-dev/tako-skill}"
 REF="${TAKO_SKILL_REF:-main}"
 ROOT="${TAKO_SKILL_MIRROR_ROOT:-/srv/tako-skill-mirror}"
 KEEP_RELEASES="${TAKO_SKILL_KEEP_RELEASES:-3}"

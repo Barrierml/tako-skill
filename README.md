@@ -26,7 +26,7 @@
 需要已有的 Tako 账户和用户 API Key。安装器使用 Node.js/npm；也可以把下方 `npx` 换成 `bunx`。
 
 ```bash
-npx skills add Barrierml/tako-skill --skill tako-skill
+npx skills add tako-dev/tako-skill --skill tako-skill
 ```
 
 按安装器提示选择你的 AI 工具。支持项目安装，也可加 `-g` 安装到个人目录。[指定 Claude Code / Codex、直接克隆和更新方法](docs/getting-started.md#安装与更新)。
@@ -53,7 +53,7 @@ export TAKO_API_KEY="YOUR_COMPLETE_TAKO_USER_KEY"
 已有 Git、Bash、Python 3 和 curl 时，可以克隆仓库使用 helper，不依赖 AI 工具的 Skill 安装机制：
 
 ```bash
-git clone https://github.com/Barrierml/tako-skill.git
+git clone https://github.com/tako-dev/tako-skill.git
 cd tako-skill
 # 在这个终端配置上面的 TAKO_API_KEY 后执行
 ./scripts/tako-image.sh generate "白色桌面上的红苹果，简洁摄影，无文字" \
@@ -94,7 +94,7 @@ cd tako-skill
 - 当前 Skill 不提供语音、图片异步任务轮询或 variations 工作流。
 - Key 的分组、模型权限、额度会影响你能调用的模型。超时或保存失败时先检查响应与用量，避免重复付费生成。
 
-本仓库旧名 `Barrierml/agent-skills` 已重定向到此处；新安装使用 `Barrierml/tako-skill`。更新命令见快速开始。
+本仓库曾用名 `Barrierml/tako-skill` 与 `Barrierml/agent-skills` 均已自动重定向到此处；新安装请使用 `tako-dev/tako-skill`。更新命令见快速开始。
 
 国内访问镜像的部署文件在 [`deploy/cn-mirror`](deploy/cn-mirror/README.md)，镜像上线后可从服务器域名获取文档和完整压缩包。
 

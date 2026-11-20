@@ -25,7 +25,7 @@ helper 始终使用 `grok-imagine-video-1.5`：画质与物理连贯性更好，
 需要 Git、Bash、Python 3。helper 只依赖 Python 标准库。
 
 ```bash
-git clone https://github.com/Barrierml/tako-skill.git
+git clone https://github.com/tako-dev/tako-skill.git
 cd tako-skill
 
 # 文生视频：提交后自动轮询，成功后保存 task JSON 和 MP4

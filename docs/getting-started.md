@@ -26,17 +26,17 @@ export TAKO_API_KEY="YOUR_COMPLETE_TAKO_USER_KEY"
 需要 Node.js/npm，也可以使用 Bun。先执行交互安装，选择实际使用的 AI 工具：
 
 ```bash
-npx skills add Barrierml/tako-skill --skill tako-skill
+npx skills add tako-dev/tako-skill --skill tako-skill
 ```
 
 默认安装在项目；加 `-g` 安装到个人目录。指定工具的例子：
 
 ```bash
 # Claude Code，全局安装
-npx skills add Barrierml/tako-skill --skill tako-skill -a claude-code -g
+npx skills add tako-dev/tako-skill --skill tako-skill -a claude-code -g
 
 # Codex，全局安装
-npx skills add Barrierml/tako-skill --skill tako-skill -a codex -g
+npx skills add tako-dev/tako-skill --skill tako-skill -a codex -g
 ```
 
 安装后，在相应工具中明确说“使用 tako-skill”。如果没有被发现，可以直接让助手读取本地 `SKILL.md`；不要把 API Key 写进提示词。
@@ -55,7 +55,7 @@ npx skills update tako-skill -g
 需要 Git、Bash、Python 3、curl；不需要安装 Python 第三方包或 OpenAI SDK：
 
 ```bash
-git clone https://github.com/Barrierml/tako-skill.git
+git clone https://github.com/tako-dev/tako-skill.git
 cd tako-skill
 ```
 

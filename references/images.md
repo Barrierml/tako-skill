@@ -50,7 +50,7 @@ curl --fail-with-body -sS --max-time 240 "$TAKO_BASE_URL/v1/images/generations" 
 需要 Git、Bash、Python 3。helper 使用 Python 标准库，不需要安装 OpenAI SDK。
 
 ```bash
-git clone https://github.com/Barrierml/tako-skill.git
+git clone https://github.com/tako-dev/tako-skill.git
 cd tako-skill
 
 # 生成一张图：JSON 保存在 response.json，图片保存在 output/apple.png

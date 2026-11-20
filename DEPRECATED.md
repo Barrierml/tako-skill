@@ -2,7 +2,7 @@
 
 This repository was renamed.
 
-Use **https://github.com/Barrierml/tako-skill** instead.
+Use **https://github.com/tako-dev/tako-skill** instead.
 
-The previous public name `Barrierml/agent-skills` redirects here.
+Previous public names (`Barrierml/tako-skill` and `Barrierml/agent-skills`) redirect here.
 

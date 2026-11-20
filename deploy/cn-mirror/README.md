@@ -5,7 +5,7 @@
 ## 目标链路
 
 ```text
-GitHub Barrierml/tako-skill main
+GitHub tako-dev/tako-skill main
   → mirror host `.12` 定时执行 sync.sh（原子切换 current）
   → nginx:8098 只读静态目录
   → Kong host `tako-skill.shiroha.tech`
