@@ -23,7 +23,7 @@ export TAKO_API_KEY="YOUR_COMPLETE_TAKO_USER_KEY"
 
 | 视角 | 请求 | 认证 | 主要字段 |
 | --- | --- | --- | --- |
-| 当前 Key | `GET /v1/usage/token/` | `Authorization: Bearer <完整 Key>` | `data.total_granted`、`data.total_used`、`data.total_available`、`data.unlimited_quota`、`data.model_limits`、`data.expires_at` |
+| 当前 Key | `GET /api/usage/token/` | `Authorization: Bearer <完整 Key>` | `data.total_granted`、`data.total_used`、`data.total_available`、`data.unlimited_quota`、`data.model_limits`、`data.expires_at` |
 | 订阅窗口 | `GET /v1/dashboard/billing/subscription` | 同上 | `hard_limit_usd`、`soft_limit_usd`、`system_hard_limit_usd`、`access_until` |
 | 聚合消费 | `GET /v1/dashboard/billing/usage` | 同上 | `total_usage`（接口按展示设置返回，通常是美元值 × 100） |
 
