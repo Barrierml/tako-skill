@@ -57,9 +57,11 @@ helper 只发一个 Noul 问题；Choice、Score 和多个问题请使用[完整
 
 任务状态为 `FAILURE` 时读取状态 JSON 的错误说明；重新提交按新任务计费。`status --save-video` 只在任务成功后才下载。模型、分辨率和参考图要求见[视频指南](../references/video.md)。
 
-## 语音、蒙版或图片异步任务在哪里
+## 语音保存失败、蒙版或图片异步任务在哪里
 
-当前 Skill 支持 Grok 视频生成，但没有语音、图片异步任务/轮询或 variations 工作流。蒙版、透明背景、所有尺寸/质量组合也没有在各模型上全面验证。不要把上游或旧版 PAR 的能力直接当作 Tako 已支持；图片边界见[模型与接口指南](../references/images.md#参数费用与限制)。
+语音合成（冰糖 TTS / 情绪控制 / 声音克隆）与 ASR 转写已通过 [`tako-audio.sh`](../scripts/tako-audio.sh) 接入，详见[冰糖语音指南](../references/audio.md)。`--save-audio` 与 `--out` 均拒绝覆盖已有文件；若收到 HTTP 错误或 `{...}` JSON 错误响应，helper 会非零退出且绝不写入坏文件。
+
+当前 Skill 仍不提供图片异步任务/轮询或 `/v1/images/variations` 工作流。蒙版、透明背景、所有尺寸/质量组合也没有在各模型上全面验证。不要把上游或旧版 PAR 的能力直接当作 Tako 已支持；图片边界见[模型与接口指南](../references/images.md#参数费用与限制)。
 
 
 ## 用量查询
