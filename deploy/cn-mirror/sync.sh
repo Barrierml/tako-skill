@@ -86,6 +86,11 @@ JSON
 <li><a href="/SKILL.md">SKILL.md</a>：给 AI 助手的入口</li>
 <li><a href="/docs/getting-started.md">快速开始</a></li>
 <li><a href="/references/images.md">图片与提示词</a></li>
+<li><a href="/references/video.md">视频生成与编辑</a></li>
+<li><a href="/references/audio.md">冰糖语音与声音克隆</a></li>
+<li><a href="/references/search.md">实时联网溯源</a></li>
+<li><a href="/references/consult.md">外脑深度会诊</a></li>
+<li><a href="/references/systemone.md">System One 结构化决策</a></li>
 <li><a href="/references/usage.md">用量与额度</a></li>
 <li><a href="/tako-skill.tar.gz">下载完整 Skill 压缩包</a>（<a href="/tako-skill.tar.gz.sha256">SHA-256</a>）</li>
 </ul>

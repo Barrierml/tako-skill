@@ -2,7 +2,7 @@
 
 先完成[安装和 Key 配置](../docs/getting-started.md)。下面命令从克隆仓库根目录运行；助手按自己的 Skill 安装目录解析脚本路径。
 
-[返回首页](../README.md) · [图片提示词与实际效果](../references/images.md)
+[返回首页](../README.md) · [图片示例](../references/images.md) · [视频生成](../references/video.md) · [冰糖语音](../references/audio.md) · [外脑会诊](../references/consult.md)
 
 ## 生成图片并保存
 
@@ -45,6 +45,33 @@
 
 helper 会提交任务、轮询直到完成再下载 MP4；任务 JSON 先保存，超时可用 `status` 恢复。视频模型为 `grok-imagine-video-1.5`（画质与物理连贯性更好，支持 `1080p`）。图生视频加 `--image` 参考图（可选传）；`--last-frame` 锁尾帧、`--ref-image` 可重复传多参考图保持角色 / 商品一致（prompt 中用 `@image0`、`@image1` 引用）、`--edit-video` 用自然语言编辑已有 MP4、`--extend-video` 无缝续写 2–10 秒。模型与排错见[视频生成](../references/video.md)。
 
+## 冰糖语音合成、情绪控制、克隆与转写
+
+```bash
+# 1) 冰糖默认配音（mimo-v2.5-tts）
+./scripts/tako-audio.sh tts \
+  "在 Tako Switch 一键挂载之后，一句话就能合成有温度的旁白。" \
+  --save-audio output/bingtang-warm.mp3 --out output/bingtang-warm.json
+
+# 2) 情绪与语速控制（自动切换 mimo-v2.5-tts-instruct）
+./scripts/tako-audio.sh tts \
+  "深夜改完最后一行代码，窗外正下着细雨。" \
+  --instructions "深夜电台旁白，声音沉静温柔，语速略慢" \
+  --format wav --speed 0.92 \
+  --save-audio output/bingtang-radio.wav
+
+# 3) 零样本声音克隆（<= 10MB 本地样本，自动切换 mimo-v2.5-tts-voiceclone）
+./scripts/tako-audio.sh tts \
+  "欢迎来到本周的技术更新速递。" \
+  --voice-sample assets/audio/voice-bingtang-warm.mp3 \
+  --save-audio output/cloned.mp3
+
+# 4) 语音转写 ASR（speech_asr）
+./scripts/tako-audio.sh asr assets/audio/voice-bingtang-warm.mp3 --language zh
+```
+
+`--save-audio` 与 `--out` 均拒绝覆盖已有文件；若接口返回非 2xx 或 JSON 错误响应不会写入坏文件。详情见[冰糖语音与克隆](../references/audio.md)。
+
 ## 搜索并引用来源
 
 ```bash
@@ -52,6 +79,18 @@ helper 会提交任务、轮询直到完成再下载 MP4；任务 JSON 先保存
 ```
 
 引用真实返回的 `results[].url`；如果只有 `answer`，明确说明没有来源列表。[参数与响应](../references/search.md)。
+
+## 外脑深度会诊（Second Opinion）
+
+```bash
+./scripts/tako-consult.sh \
+  "多个桌面客户端同时切入本地统一网关时，端口抢占与配置热更新有哪些竞态盲点？" \
+  --context "各客户端启动时都会探测 18419 并直接写配置文件" \
+  --focus "单飞探活锁与原子配置替换" \
+  --out output/consult-gateway.json
+```
+
+默认使用 `gpt-6.2-sol`，可传 `--context-file <path>` 附上代码或日志片段。什么时候用 `tako-consult.sh` vs `tako-systemone.sh` 见[外脑会诊指南](../references/consult.md)。
 
 ## System One 判断
 
